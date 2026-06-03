@@ -79,11 +79,14 @@ def newDemo(elementtype, name):
     global folder
     global demos
 
-    os.mkdir(str(folder + "/" + str(len(demos) + 1)  + "_" + elementtype + "_" + name))
     update_demos()
-    return int(len(demos))
+    print(str(int(demos[-1].id) + 1))
+    os.mkdir(str(folder + "/" + str(int(demos[-1].id) + 1)  + "_" + elementtype + "_" + name))
+    update_demos()
+    return int(demos[-1].id)
 
 def selectDemoById(id):
+    print("ahora solo tengo que buscar el archvio que empiece en " + str(id))
     for subfolder in path.iterdir():
         if not subfolder.is_dir():
             continue
@@ -93,6 +96,19 @@ def selectDemoById(id):
 
     return 0
 
+def listFiles(demo, formats):
+    files = []
+    for file in Path(demo.path).iterdir():
+        if file.is_dir():
+            continue
+        if file.name == "notes.txt":
+            continue
+
+        if file.name.split(".")[-1] in formats or not formats:
+            files.append(file.name)
+    return files
+        
+    
 #esto para mover los archivos de tmp a donde deberian aja?
 # files = array de ".tmp/"
 #destine = la carpeta

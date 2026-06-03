@@ -1,6 +1,7 @@
 someone = "Ri"
 
 import osapi
+import os
 import dataclasses
 from nicegui import app, ui, events, logging
 
@@ -19,15 +20,21 @@ types = {
     "idea": "Idea"
 }
 
+icontypes = {
+    "inst": "piano",
+    "demo": "album",
+    "lyr": "lyrics",
+    "riff": "filter_retrolux",
+    "phra": "quick_phrases",
+    "idea": "emoji_objects"
+}
+
 tmpfiles = []
 async def handle_upload(e):
-    #print(str(e.file.read()), flush=True)  
-    #tmpfiles.append({"name": e.file.name, "content": e.file.read()}) 
     await e.file.save(".tmp/" + str(e.file.name))
     tmpfiles.append(str(e.file.name))
 
 def delete_item(id):
-    print("la idea es deletear a " + str(id['ID']))
     osapi.selectDemoById(id['ID']).delete()
     osapi.update_demos()
     #importante 
@@ -41,17 +48,38 @@ def newMaterialForum():
     except Exception as e:
         ui.label("Error: " + str(e))
         return 1
-    osapi.update_demos()
     #ui.label("id del nuevomaterial: " + str(newMaterial))
 
     if new_form_notes.value:
-       osapi.selectDemoById(newMaterial).add_note(new_form_notes.value)
+        osapi.update_demos()
+        osapi.selectDemoById(newMaterial).add_note(new_form_notes.value)
 
     if new_form_name.value:
         osapi.movFromTmp(tmpfiles, osapi.selectDemoById(newMaterial).path)
         osapi.emtpyTmp()
 
+    #importante 
+    ui.navigate.reload()
 
+
+
+def view_item(item):
+    print(item)
+    demo = osapi.selectDemoById(item["ID"])
+    print(demo.name)
+    viewer_title.content = "#### **" + demo.name + "**"
+    viewer_type.content =  "**" + item["type"] + "**"
+    if os.path.isfile(demo.path + '/notes.txt'):  
+        with open(demo.path + "/notes.txt", 'r') as file:
+            viewer_about.content = file.read()
+    else:
+        viewer_about.content = ""
+
+    # File listing
+    files = osapi.listFiles(demo=demo, formats=["mp3", "wav", "ogg", "oga", "m4a", "aac", "flac"])
+    print(files)
+
+    
 ### Front end starts
 
 #<head>
@@ -93,10 +121,15 @@ with ui.row().classes('w-full no-wrap items-start md:flex-row flex-col'):
                 ui.button('Save', on_click=newMaterialForum) \
                     .classes('w-full mt-4 py-4').props('color=primary icon=save')
 
-        with ui.expansion('Viewer', icon='visibility', group='left', value = False).classes('w-full'):
-            ui.label()
-        
-        
+        with ui.expansion('Viewer', icon='visibility', group='left', value = True).classes('w-full'):
+            viewer_title = ui.markdown('#### **' + osapi.demos[-1].name + '**')
+            viewer_type = ui.markdown('**' + types[osapi.demos[-1].type] + '**')
+            ui.label('About: ')
+            viewer_about = ui.markdown("...")
+            if os.path.isfile(osapi.demos[-1].path + '/notes.txt'):  
+                with open(osapi.demos[-1].path + "/notes.txt", 'r') as file:
+                    viewer_about.content = file.read()
+                    
     #@ui.refreshable
     with ui.card().classes('w-full md:w-[60%] q-pa-none overflow-hidden') as updatable:
         table = []
@@ -149,7 +182,7 @@ with ui.row().classes('w-full no-wrap items-start md:flex-row flex-col'):
             
             uitable.on('delete', lambda val: delete_item(val.args['row']))
             uitable.on('edit', lambda val: print(val.args['row']))
-            uitable.on('view', lambda val: print(val.args['row']))
+            uitable.on('view', lambda val: view_item(val.args['row']))
             
         #table.on('action', lambda msg: print(msg))
 
