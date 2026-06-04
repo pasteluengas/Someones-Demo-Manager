@@ -21,6 +21,7 @@ pip install nicegui
 ```
 
 Im actively avoiding external libraries for this specific project
+
 ---
 
 ## Usage
@@ -38,4 +39,4 @@ SDM will simply create a new one if it doesn't exist.
 
 ---
 
-author's note i like girls a lot 
+author's note i like women a lot 
