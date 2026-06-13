@@ -15,20 +15,19 @@ if os.path.isdir(folder):
 def init():
     global folder
     if not os.path.isdir(folder):
-        print("no hay carpeta socio creala")
+        print("No demos folder found, creating one")
         try:
             os.mkdir(folder)
         except: 
             print("Couln't create source folder... retrying")
-            init()
-            print("fuck off")
+            return init()
 
     if not os.path.isdir(".tmp"):
-        print("no hay tmp")
+        print("No .tmp folder found, creating one")
         try:
             os.mkdir(".tmp")
         except:
-            print("Pues a la mierda")
+            print("No .tmp Folder created")
 
     return folder
 
@@ -97,7 +96,6 @@ def newDemo(elementtype, name):
     return int(demos[-1].id)
 
 def selectDemoById(id):
-    print("ahora solo tengo que buscar el archvio que empiece en " + str(id))
     for subfolder in path.iterdir():
         if not subfolder.is_dir():
             continue

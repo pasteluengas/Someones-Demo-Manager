@@ -3,6 +3,7 @@ someone = "Ri"
 import osapi
 import os
 import dataclasses
+import socket
 from nicegui import app, ui, events, logging
 
 if osapi.folderexists:
@@ -18,7 +19,7 @@ types = {
     "riff": "Riff",
     "phra": "Phrase",
     "idea": "Idea",
-    "init": "Delete This"
+    "init": "Info"
 }
 
 icontypes = {
@@ -40,7 +41,7 @@ async def handle_upload(e):
 def delete_item(id):
     osapi.selectDemoById(id['ID']).delete()
     osapi.update_demos()
-    #importante 
+    #important 
     ui.navigate.reload()
 
 def newMaterialForum(new_form_name, new_form_type, new_form_notes): 
@@ -51,8 +52,7 @@ def newMaterialForum(new_form_name, new_form_type, new_form_notes):
     except Exception as e:
         ui.label("Error: " + str(e))
         return 1
-    #ui.label("id del nuevomaterial: " + str(newMaterial))
-
+        
     if new_form_notes.value:
         osapi.update_demos()
         osapi.selectDemoById(newMaterial).add_note(new_form_notes.value)
@@ -61,7 +61,7 @@ def newMaterialForum(new_form_name, new_form_type, new_form_notes):
         osapi.movFromTmp(tmpfiles, osapi.selectDemoById(newMaterial).path)
         osapi.emtpyTmp()
 
-    #importante 
+    #important
     ui.navigate.reload()
 
 
@@ -69,14 +69,11 @@ currentdemoid = 0
 def gotoselecteddemo():
     global currentdemoid
     ui.navigate.to(f"/files/{currentdemoid}")
-    print("????")
 
 
 def view_item(item, viewer_title, viewer_type, viewer_about, viewer_button):
     global currentdemoid
-    print(item)
     demo = osapi.selectDemoById(item["ID"])
-    print(demo.name)
     currentdemoid = demo.id
     viewer_title.content = "#### **" + demo.name + "**"
     viewer_type.content =  "**" + item["type"] + "**"
@@ -88,7 +85,6 @@ def view_item(item, viewer_title, viewer_type, viewer_about, viewer_button):
 
     # File listing
     files = osapi.listFiles(demo=demo, formats=["mp3", "wav", "ogg", "oga", "m4a", "aac", "flac"])
-    print(files)
 
 
 ### Front end starts
@@ -140,9 +136,7 @@ def filespage(demoId):
                             ui.icon('file_present').classes('w-full text-center text-4xl')
                             
                         ui.label(file)
-                        #ui.button('Open File', on_click=lambda: ui.navigate.to("../" + demo.path + "/" + file))
                         ui.link("Open File", "../" + demo.path + "/" + file)
-                   # ui.link(file, "../" + demo.path + "/" + file)
 
 #<header>
 @ui.page("/", reconnect_timeout=60.0)
@@ -152,7 +146,7 @@ def page():
     renderHeader()
 
     #<elresto>
-    ip = ui.label("Visite esta mierda en: " + str(osapi.getURL(app.urls)) + " (solo funciona en la red local)")
+    #ip = ui.label("Visite esta mierda en: " + str(osapi.getURL(app.urls)) + " (solo funciona en la red local)")
 
     with ui.row().classes('w-full no-wrap items-start md:flex-row flex-col'):
         with ui.card().classes('w-full md:w-[40%] q-pa-md'):
@@ -245,5 +239,16 @@ def page():
                 
             #table.on('action', lambda msg: print(msg))
 
-ui.run(port=8081, reload=False, reconnect_timeout=30)
-    
+def trycon(port=8081, attempts=0):
+    if attempts > 99:
+        print("ERROR! No ports available after 100 attempts")
+        return
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(('0.0.0.0', port))
+    except OSError:
+        trycon(port+1, attempts+1)
+        return
+    ui.run(port=port, reload=False, reconnect_timeout=30)
+
+trycon()
