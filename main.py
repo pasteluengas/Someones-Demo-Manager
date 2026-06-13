@@ -5,7 +5,8 @@ import os
 import dataclasses
 from nicegui import app, ui, events, logging
 
-app.add_static_files(f"/" + osapi.folder, "./" + osapi.folder)
+if osapi.folderexists:
+    app.add_static_files(f"/" + osapi.folder, "./" + osapi.folder)
 
 osapi.init()
 osapi.update_demos()
@@ -16,7 +17,8 @@ types = {
     "lyr": "Lyrics",
     "riff": "Riff",
     "phra": "Phrase",
-    "idea": "Idea"
+    "idea": "Idea",
+    "init": "Delete This"
 }
 
 icontypes = {
@@ -25,7 +27,8 @@ icontypes = {
     "lyr": "lyrics",
     "riff": "filter_retrolux",
     "phra": "quick_phrases",
-    "idea": "emoji_objects"
+    "idea": "emoji_objects",
+    "init": "exclamation"
 }
 
 

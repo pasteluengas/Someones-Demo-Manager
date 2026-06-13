@@ -6,7 +6,10 @@ from pathlib import Path
 demos = []
 folder = ".demosfiles"
 path = Path(folder)
+folderexists = False
 
+if os.path.isdir(folder):
+        folderexists = True
 
 # devuelve la carpeta raiz donde esta todo el contenido
 def init():
@@ -65,24 +68,32 @@ class demo:
             notesfile.write(note)
         
 
-def update_demos():
+def update_demos(fromNewDemo = False):
     global demos
     global path
     demos.clear()
     for subfolder in path.iterdir():
         if not subfolder.is_dir():
             continue
-        demos.append(demo(subfolder.name))
+        if subfolder.name.split("_")[1] == "init" and not fromNewDemo:
+            try:
+                subfolder.rmdir()
+            except:
+                print("The init element contains files, not deleted.")
+            continue
+        demos.append(demo(subfolder.name))    
     demos.sort(key=lambda demo: demo.id)
+    if not demos and not fromNewDemo:
+        newDemo("init", "Add a new demo in the 'Add new material' section")
 
 def newDemo(elementtype, name):
     global folder
     global demos
 
-    update_demos()
-    print(str(int(demos[-1].id) + 1))
-    os.mkdir(str(folder + "/" + str(int(demos[-1].id) + 1)  + "_" + elementtype + "_" + name))
-    update_demos()
+    update_demos(fromNewDemo = True)
+    newid = 0 if not demos else int(demos[-1].id) + 1
+    os.mkdir(str(folder + "/" + str(newid)  + "_" + elementtype + "_" + name))
+    update_demos(fromNewDemo = True)
     return int(demos[-1].id)
 
 def selectDemoById(id):
