@@ -4,6 +4,7 @@ import osapi
 import os
 import dataclasses
 import socket
+import requests
 from nicegui import app, ui, events, logging
 
 if osapi.folderexists:
@@ -92,7 +93,11 @@ def view_item(item, viewer_title, viewer_type, viewer_about, viewer_button):
 def renderHeader():
     with ui.header(elevated=True).classes('items-center justify-between bg-primary text-white q-pa-md'):
             with ui.row().classes('items-center gap-4'):
-                ui.icon('folder_shared', size='2em')
+                qr = osapi.qrcode(osapi.getURL(app.urls))
+                if qr.success:
+                    ui.image(qr.image).style('width: 75px; height: 75px;')
+                else:
+                    ui.icon('folder_shared', size='2em')
                 ui.label(someone + "'s Demo Manager").classes('text-h4 font-bold')
                 ui.label('LAN website: ' + str(osapi.getURL(app.urls))).classes('font-bold')
     
@@ -121,7 +126,8 @@ def filespage(demoId):
             ui.separator()
             if os.path.isfile(demo.path + '/notes.txt'):  
                 with open(demo.path + "/notes.txt", 'r') as file:
-                    ui.label(file.read())
+                    for line in file:
+                        ui.label(line.strip())
             
         with ui.card().classes('w-full md:w-[60%] q-pa-none overflow-hidden'):
             ui.markdown("## Files")
@@ -137,6 +143,9 @@ def filespage(demoId):
                             
                         ui.label(file)
                         ui.link("Open File", "../" + demo.path + "/" + file)
+
+
+
 
 #<header>
 @ui.page("/", reconnect_timeout=60.0)
@@ -172,14 +181,16 @@ def page():
                     ui.button('Save', on_click=lambda: newMaterialForum(new_form_name, new_form_type, new_form_notes)) \
                         .classes('w-full mt-4 py-4').props('color=primary icon=save')
 
+            #viewer
             with ui.expansion('Viewer', icon='visibility', group='left', value = True).classes('w-full'):
                 viewer_title = ui.markdown('#### **' + osapi.demos[-1].name + '**')
                 viewer_type = ui.markdown('**' + types[osapi.demos[-1].type] + '**')
                 ui.label('About: ')
-                viewer_about = ui.markdown("...")
+                #viewer_about = ui.markdown("...")
                 if os.path.isfile(osapi.demos[-1].path + '/notes.txt'):  
                     with open(osapi.demos[-1].path + "/notes.txt", 'r') as file:
-                        viewer_about.content = file.read()
+                        for line in file:
+                            ui.label(line.strip())
                 currentdemoid = osapi.demos[-1].id
                 viewer_button = ui.button('View More', on_click=gotoselecteddemo)
                         

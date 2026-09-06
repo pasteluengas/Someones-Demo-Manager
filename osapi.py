@@ -2,6 +2,10 @@ import os
 import shutil
 from pathlib import Path
 
+import urllib.request
+import urllib.parse
+import urllib.error
+
 
 demos = []
 folder = ".demosfiles"
@@ -36,6 +40,7 @@ def getURL(urls):
     for url in urls:
         if "127.0.0.1" not in url and "localhost" not in url:
             return url
+        return "... you cant?!"
 
 class demo:
     def __init__(self, path):
@@ -128,3 +133,16 @@ def movFromTmp(files, destine): # destine jaja
 def emtpyTmp():
     shutil.rmtree(".tmp")
     os.makedirs(".tmp")
+
+
+class qrcode:
+    def __init__(self, text):
+        safe_text = urllib.parse.quote(text)
+        try:
+            req = urllib.request.Request("https://google.io/", headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=5):
+                self.success = True
+                self.image = f"https://quickchart.io/qr?text={text}&size=300"
+        except (requests.ConnectionError, requests.Timeout):
+            self.success = False
+            self.image = None
